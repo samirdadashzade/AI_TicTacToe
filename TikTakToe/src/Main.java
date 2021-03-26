@@ -10,10 +10,10 @@ public class Main {
     public static void main(String[] args) {
         int teamId1 = 1243; //we "X" now
         int teamId2 = 1246;//1250;//;1244
-        int boardSize = 12;
+        int boardSize = 4;
         String mine = teamId1 == 1243 ? "O" : "X";
-        int target = 6;
-        int gameId = 2639;
+        int target = 3;
+        int gameId = 2644;
         int recentCount = boardSize * boardSize;
         int opponentWaitTimeoutSecond = 60; //1 minute
         int opponentWaitTimeoutRetry = 10;
@@ -37,7 +37,7 @@ public class Main {
         //gameId = ParseGameId(response);
 
         BaseResponse response = ApiHelper.GetMyMoves(gameId, recentCount);
-//
+
         game = game.FromState(ParseGameBoard(response, boardSize, mine), target);
 
         //3. While game is not in Terminal state
