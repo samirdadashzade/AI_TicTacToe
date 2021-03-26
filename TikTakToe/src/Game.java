@@ -79,7 +79,7 @@ public class Game {
     public Action GetBestMove()
     {
         int n = this.GameState.length;
-        int depth = n > 4 ? 4 : n;
+        int depth = n > 4 ? 2 : n;
         ActionResult bestMove = this.Minimax(this.GameState, depth, Integer.MIN_VALUE, Integer.MAX_VALUE,false);
         return bestMove.Action;
     }
@@ -147,7 +147,7 @@ public class Game {
         for(int i = 0; i < n; i++) {
             for(int j = 0; j < n; j++) {
                 if(state[i][j] == 0)
-                    actions[actionIndex++] = new Action(j, i);
+                    actions[actionIndex++] = new Action(i, j);
             }
         }
 
@@ -200,7 +200,7 @@ public class Game {
 
         if(maxPlayer)
         {
-            int v = Integer.MAX_VALUE;
+            int v = Integer.MIN_VALUE;//Integer.MAX_VALUE;
             Action[] actionsList = this.Actions(state);
             ActionResult maxAction = new ActionResult(Integer.MIN_VALUE, new Action(-1, -1));
 

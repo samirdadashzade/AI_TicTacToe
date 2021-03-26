@@ -73,8 +73,8 @@ public class ApiHelper {
                 httpResponse = Unirest.post(
                                 "https://www.notexponential.com/aip2pgaming/api/index.php")
                                 .body(path)
-                                .header("x-api-key", "80e659fb7cf9bab335ca")
-                                .header("userid", "1047")
+                                .header("x-api-key", "69f316d7e77c3b595ddf")
+                                .header("userid", "1049")
                                 .header("Content-Type", "application/x-www-form-urlencoded")
                                 .asString();
             }
