@@ -6,13 +6,14 @@ public class Game {
     public boolean IsFinished = false;
     public byte[][] GameState;
     public byte nextPlayer = 0;
+    public int targetLength = 0;
 
 
-    public Game(int number, byte nextPlayer)
+    public Game(int number, int trgtLength,byte nextPlayer)
     {
         GameState = new byte[number][number];
-
-        printBoard(GameState);
+        this.targetLength = trgtLength;
+//        printBoard(GameState);
     }
 
     //make value int type
@@ -76,13 +77,26 @@ public class Game {
         return newState;
     }
 
-    public Action GetBestMove()
+    public Action GetBestMove(int trgtLength)
     {
+        this.targetLength = trgtLength;
         int n = this.GameState.length;
-        int depth = n > 4 ? 2 : n;
+
+        int depth = 10;//n > 4 ? 7 : 7;
         ActionResult bestMove = this.Minimax(this.GameState, depth, Integer.MIN_VALUE, Integer.MAX_VALUE,false);
         return bestMove.Action;
     }
+
+    public boolean isMovesLeft(byte[][] state, int stateSize)
+    {
+        for (int i = 0; i < stateSize; i++) {
+            for (int j = 0; j < stateSize; j++) {
+                if(state[i][j]==0) return true;
+            }
+        }
+        return false;
+    }
+
 
     public byte[][] Result(byte[][] state, byte player, Action action) {
         if(action != null)
@@ -92,7 +106,7 @@ public class Game {
 
         return state;
     }
-
+/*
     public byte Utility(byte[][] state)
     {
         int n = state.length;
@@ -138,6 +152,132 @@ public class Game {
 
         return 0;
     }
+*/
+    // check if somebody wins
+    public byte Utility(byte[][]  board){
+        // Explanation of possible values:
+        // N -> null, namely nothing fancy
+        // D -> Draw or tie.
+        // X -> X wins
+        // O -> O wins
+        int startElmnt = 0;
+        int boardLength = board.length;
+        // this value will detect if all values of cells were filled
+        // with sign of X or O
+        // if it is false at the end of function
+        // that means it is draw
+        boolean fIn = false;
+
+        for (int i = 0; i < boardLength; i++) {
+            startElmnt = 0;
+            for (int j = 0; j < boardLength; j++) {
+                // if the current cell is empty then just move to
+                // next cell
+                if(board[i][j] == 0){
+                    fIn = true;
+                    continue;
+                }
+
+                // checking row (right) move
+                // if start_elem is X then all
+                // row elements right or left should be X to win
+                startElmnt = board[i][j];
+                // if enough space remainings from current to the
+                // end of board (in row order)
+                if(j+targetLength <= boardLength){
+                    boolean f = true;
+                    for (int k = j+1; k < j + targetLength; k++) {
+                        // there is different sign in row from start_elem value
+//                        System.out.println(startElmnt+ " <++> "+boardMatrix.get(i).get(k));
+                        if(board[i][k] != startElmnt){
+                            f = false;
+                            break;
+                        }
+                    }
+
+                    // startElmnt won!
+                    if(f){
+//                        printMatrix();
+//                        System.out.println("ROW WIN");
+                        // returning winner player
+                        return (byte)startElmnt;
+                    }
+
+                }
+
+                // if enough space remainings from current to the
+                // end of board (in column order)
+                if(i + targetLength <= boardLength){
+                    boolean f = true;
+
+                    for (int k = i+1; k < i+targetLength; k++) {
+                        // there is different sign in row from start_elem value
+                        if(board[k][j]!=startElmnt){
+                            f = false;
+
+                            break;
+                        }
+                    }
+
+                    // startElmnt won!
+                    if(f){
+//                        System.out.println("COLUMN WIN");
+                        // returning winner player
+                        return (byte)startElmnt;
+                    }
+                }
+
+                // check diagonal through right \
+                if(i + targetLength-1 < boardLength && j + targetLength - 1 < boardLength){
+                    int tmpI = i+1;
+                    int tmpJ = j+1;
+                    boolean f = true;
+                    for (int k = 0; k < targetLength - 1; k++) {
+                        if(board[tmpI][tmpJ] != startElmnt){
+                            f = false;
+                            break;
+                        }
+                        tmpI++;
+                        tmpJ++;
+                    }
+
+                    if(f){
+//                        System.out.println("DIAGONAL_RIGHT_WIN");
+                        // returning winner player
+                        return (byte)startElmnt;
+                    }
+                }
+
+                // check diagonal through left /
+                if(i + targetLength-1 < boardLength && j - (targetLength - 1) >= 0 && j - (targetLength - 1) < boardLength){
+                    int tmpI = i+1;
+                    int tmpJ = j-1;
+                    boolean f = true;
+                    for (int k = 0; k < targetLength - 1; k++) {
+                        if(board[tmpI][tmpJ] != startElmnt){
+                            f = false;
+
+                            break;
+                        }
+                        tmpI++;
+                        tmpJ--;
+                    }
+
+                    if(f){
+//                        System.out.println("DIAGONAL_LEFT_WIN");
+                        // returning winner player
+                        return (byte)startElmnt;
+                    }
+                }
+
+            }
+        }
+        // draw
+//        if(fIn==false)
+//            return 0;
+
+        return  (byte)0;
+    }
 
     public Action[] Actions(byte[][] state) {
         int n = state.length;
@@ -153,10 +293,10 @@ public class Game {
 
         return actions;
     }
-
+    // checkout this function again
     public boolean Terminal(byte[][] state) {
         int util = this.Utility(state);
-        if(this.Actions(state).length == 0 || util != 0) {
+        if(this.Actions(state).length == 0 || util != 0 || !this.isMovesLeft(state, state.length)) {
             return true;
         }
 
@@ -212,7 +352,7 @@ public class Game {
                 v = Math.max(v, r.Utility);
                 alpha = Math.max(alpha, v);
                 if(alpha >= beta) {
-                    System.out.println("AB: " + alpha + " " + beta);
+//                    System.out.println("AB: " + alpha + " " + beta);
                     break;
                 }
                 if(v > maxAction.Utility) {
@@ -233,9 +373,9 @@ public class Game {
                 byte[][] newState = this.Result(copyState,(byte)-1,action);
                 ActionResult r = this.Minimax(newState,depth-1,alpha,beta,true);
                 v = Math.min(v, r.Utility);
-                beta = Math.max(beta, v);
+                beta = Math.min(beta, v);
                 if(alpha >= beta) {
-                    System.out.println("AB: " + alpha + " " + beta);
+//                    System.out.println("AB: " + alpha + " " + beta);
                     break;
                 }
                 if(v < minAction.Utility) {
@@ -248,10 +388,10 @@ public class Game {
         }
     }
 
-    public static Game FromState(byte[][] gameState) {
+    public static Game FromState(byte[][] gameState, int trgtLength) {
         int n = gameState.length;
 
-        Game game = new Game(n, (byte) -1);
+        Game game = new Game(n, trgtLength, (byte) -1);
 
         for(int i = 0; i < n; i++) {
             for(int j = 0; j < n; j++) {
