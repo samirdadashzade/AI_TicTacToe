@@ -82,7 +82,7 @@ public class Game {
         this.targetLength = trgtLength;
         int n = this.GameState.length;
 
-        int depth = 10;//n > 4 ? 7 : 7;
+        int depth = 4;//n > 4 ? 7 : 7;
         ActionResult bestMove = this.Minimax(this.GameState, depth, Integer.MIN_VALUE, Integer.MAX_VALUE,false);
         return bestMove.Action;
     }
@@ -338,35 +338,47 @@ public class Game {
     }
 
     public ActionResult Minimax(byte[][] state, int depth, int alpha, int beta, boolean maxPlayer) {
+        // checks if it is end of depth,
+        // or terminal state
         if(depth == 0 || this.Terminal(state))
         {
-//            printBoard(state);
+            // if it is terminal state or end of depth then simply return default values.
             return new ActionResult(this.Utility(state), new Action(-1, -1));
         }
-        //
 
-        //
-
+        // check if maximizing player
         if(maxPlayer)
         {
-            int v = Integer.MIN_VALUE;//Integer.MAX_VALUE;
+            int v = Integer.MIN_VALUE;
+            // get all possible actions list of state
             Action[] actionsList = this.Actions(state);
+            // create default maximum
             ActionResult maxAction = new ActionResult(Integer.MIN_VALUE, new Action(-1, -1));
-
+            // loop through all actions
+            // and check all one by one on state
             for (Action action : actionsList)
             {
                 byte[][] copyState =  this.CopyState(state);
+                // create new state after adding current action to state
+                // and put 1 as the player, because it is the turn of maximizing player
                 byte[][] newState = this.Result(copyState,(byte)1,action);
+
+                // call minimax recursively and decrease depth of tree,
+                // now it is turn of minimizing
                 ActionResult r = this.Minimax(newState,depth-1,alpha,beta,false);
+                // Find the maximum between utility of other moves and current move
                 v = Math.max(v, r.Utility);
+                // check the value of alpha
                 alpha = Math.max(alpha, v);
-                if(alpha >= beta) {
-//                    System.out.println("AB: " + alpha + " " + beta);
-                    break;
-                }
+// alpha-beta pruning was here
                 if(v > maxAction.Utility) {
                     maxAction.Utility = v;
                     maxAction.Action = action;
+                }
+// changed the places of alpha-beta pruning
+                if(alpha >= beta) {
+//                    System.out.println("AB: " + alpha + " " + beta);
+                    break;
                 }
             }
 
@@ -383,13 +395,15 @@ public class Game {
                 ActionResult r = this.Minimax(newState,depth-1,alpha,beta,true);
                 v = Math.min(v, r.Utility);
                 beta = Math.min(beta, v);
-                if(alpha >= beta) {
-//                    System.out.println("AB: " + alpha + " " + beta);
-                    break;
-                }
+// alpha-beta pruning was here
                 if(v < minAction.Utility) {
                     minAction.Utility = v;
                     minAction.Action = action;
+                }
+// changed the places of alpha-beta pruning
+                if(alpha >= beta) {
+//                    System.out.println("AB: " + alpha + " " + beta);
+                    break;
                 }
             }
 
