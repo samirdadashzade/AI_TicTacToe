@@ -10,13 +10,15 @@ public class Main {
     public static void main(String[] args) {
         int teamId1 = 1243; //we "X" now
         int teamId2 = 1246;//1250;//;1244
-        int boardSize = 4;
+        int boardSize = 12;
         String mine = teamId1 == 1243 ? "O" : "X";
-        int target = 3;
-        int gameId = 2593;
+        int target = 6;
+        int gameId = 2639;
         int recentCount = boardSize * boardSize;
         int opponentWaitTimeoutSecond = 60; //1 minute
         int opponentWaitTimeoutRetry = 10;
+        int myRecentMoveId = 0;
+
 
         //1. Create a game local (for having a Game instance)
         //2. Create a game remote
@@ -46,12 +48,13 @@ public class Main {
             Action bestMove = game.GetBestMove(target);
 
             //4. Make a best move locally and change player
-            game.Move(game.nextPlayer, bestMove);
+            game.Move((byte)1, bestMove);
+            System.out.println("Board after move:");
+            game.printBoard(game.GameState);
 
             //5. Send your move online (retry until move sent)
             response = ApiHelper.MakeMove(gameId, teamId1, bestMove.x, bestMove.y);
             boolean isSuccessful = IsSuccess(response);
-            int myRecentMoveId;
 
             if(isSuccessful)
             {
@@ -59,7 +62,14 @@ public class Main {
             }
             else{
                 int counter = 0;
-                while(!isSuccessful)
+                boolean isOpponentTurn = false;
+
+                if(ParseError(response).contains("Cannot make move - It is not the turn of team:"))
+                {
+                    isOpponentTurn = true;
+                }
+
+                while(!isSuccessful && !isOpponentTurn)
                 {
                     response = ApiHelper.MakeMove(gameId, teamId1, bestMove.x, bestMove.y);
                     isSuccessful = IsSuccess(response);
@@ -71,7 +81,30 @@ public class Main {
                     }
                 }
 
-                myRecentMoveId = ParseMyMoveId(response);
+                if(!isOpponentTurn)
+                {
+                    myRecentMoveId = ParseMyMoveId(response);
+                }
+            }
+
+            //check whether terminal state
+            if(game.Terminal(game.GameState))
+            {
+                //game ended, check who is winner
+                int utility = game.Utility(game.GameState);
+                if(utility == 1)
+                {
+                    System.out.println("WE WON");
+                }
+                else if(utility == -1)
+                {
+                    System.out.println("WE LOST");
+                }
+                else
+                {
+                    System.out.println("DRAW");
+                }
+                return;
             }
 
             //6. Get the new board state

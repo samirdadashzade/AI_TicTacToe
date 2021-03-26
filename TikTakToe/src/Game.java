@@ -82,7 +82,7 @@ public class Game {
         this.targetLength = trgtLength;
         int n = this.GameState.length;
 
-        int depth = 4;//n > 4 ? 7 : 7;
+        int depth = 5;//n > 4 ? 7 : 7;
         ActionResult bestMove = this.Minimax(this.GameState, depth, Integer.MIN_VALUE, Integer.MAX_VALUE,false);
         return bestMove.Action;
     }
@@ -317,8 +317,8 @@ public class Game {
         int x = action.x;
         int y = action.y;
 
-        if(this.GameState[y][x] == 0) {
-            this.GameState[y][x] = player;
+        if(this.GameState[x][y] == 0) {
+            this.GameState[x][y] = player;
             this.ToggleNextPlayer();
         }
 
@@ -328,9 +328,9 @@ public class Game {
             System.out.println("FINISHED " + util);
 
             if(util == 1) {
-                System.out.println("WINNER X");
+                System.out.println("WE WON");
             } else if(util == -1) {
-                System.out.println("WINNER O");
+                System.out.println("WE LOST");
             } else {
                 System.out.println("DRAW");
             }
@@ -434,7 +434,8 @@ public class Game {
         int boardSize = GetN();// NxN dimension
 
         System.out.print("    ");
-        for (int i = 0; i < boardSize; i++) {
+        for (int i = 0; i < boardSize; i++)
+        {
             if(i<10)
                 System.out.print(i + " | ");
             else
@@ -443,15 +444,17 @@ public class Game {
 
         System.out.println();
 
-        for (int i = 0; i < boardSize; i++) {
-
+        for (int i = 0; i < boardSize; i++)
+        {
             if(i<10)
                 System.out.print(i+" | ");
             else
                 System.out.print(i+"| ");
 
-            for (int j = 0; j < boardSize; j++) {
-                System.out.print(board[i][j] + " | ");
+            for (int j = 0; j < boardSize; j++)
+            {
+                System.out.print(board[i][j]);
+                System.out.print(board[i][j] == -1 ? "| " : " | ");
             }
             System.out.println();
         }
