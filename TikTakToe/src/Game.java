@@ -335,6 +335,7 @@ public class Game {
     public ActionResult Minimax(byte[][] state, int depth, int alpha, int beta, boolean maxPlayer) {
         if(depth == 0 || this.Terminal(state))
         {
+            printBoard(state);
             return new ActionResult(this.Utility(state), new Action(-1, -1));
         }
 

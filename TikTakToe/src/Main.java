@@ -8,11 +8,11 @@ public class Main {
 
     public static void main(String[] args) {
         int teamId1 = 1243; //we "X" now
-        int teamId2 = 1246;
+        int teamId2 = 1246;//1250;//;
         int boardSize = 3;
         String mine = teamId1 == 1243 ? "O" : "X";
         int target = 3;
-        int gameId = 2370;
+        int gameId = 2528;
         int recentCount = boardSize * boardSize;
 
         //1. Create a game local (for having a Game instance)
