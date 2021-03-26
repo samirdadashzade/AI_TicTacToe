@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class Main {
@@ -14,6 +15,8 @@ public class Main {
         int target = 3;
         int gameId = 2593;
         int recentCount = boardSize * boardSize;
+        int opponentWaitTimeoutSecond = 60; //1 minute
+        int opponentWaitTimeoutRetry = 10;
 
         //1. Create a game local (for having a Game instance)
         //2. Create a game remote
@@ -38,13 +41,9 @@ public class Main {
         //3. While game is not in Terminal state
         while(!game.Terminal(game.GameState))
         {
-
-
-
             System.out.println("Board before move:");
             game.printBoard(game.GameState);
             Action bestMove = game.GetBestMove(target);
-
 
             //4. Make a best move locally and change player
             game.Move(game.nextPlayer, bestMove);
@@ -52,26 +51,81 @@ public class Main {
             //5. Send your move online (retry until move sent)
             response = ApiHelper.MakeMove(gameId, teamId1, bestMove.x, bestMove.y);
             boolean isSuccessful = IsSuccess(response);
-            // TODO:: counter for break while if fail, error message output-a
-            while(!isSuccessful)
+            int myRecentMoveId;
+
+            if(isSuccessful)
             {
-                response = ApiHelper.MakeMove(gameId, teamId1, bestMove.x, bestMove.y);
-                isSuccessful = IsSuccess(response);
+                myRecentMoveId = ParseMyMoveId(response);
+            }
+            else{
+                int counter = 0;
+                while(!isSuccessful)
+                {
+                    response = ApiHelper.MakeMove(gameId, teamId1, bestMove.x, bestMove.y);
+                    isSuccessful = IsSuccess(response);
+
+                    if(counter++ >= 5)
+                    {
+                        System.out.println("API Error: " + ParseError(response));
+                        return;
+                    }
+                }
+
+                myRecentMoveId = ParseMyMoveId(response);
             }
 
-//            response = ApiHelper.GetMyMoves(gameId, recentCount);
-//            game = game.FromState(ParseGameBoard(response, boardSize, mine), target);
+            //6. Get the new board state
+            response = ApiHelper.GetMyMoves(gameId, recentCount);
+            int recentMoveId = ParseRecentMoveId(response);
 
-            // TODO:: add interval 5-10 sec. for checking next move
-            // TODO:: currMoveID must be > than incoming response of latest ID
-            //6. Get the new board state and make a move on behalf of the opponent
-            //response = ApiHelper.GetMyMoves(gameId, recentCount);
-            //byte[][] newState = ParseGameBoard(response, boardSize);
+            if(recentMoveId > myRecentMoveId)
+            {
+                byte[][] newState = ParseGameBoard(response, boardSize, mine);
+                game = game.FromState(newState, target);
+            }
+            else
+            {
+                int counter = 0;
+                while(counter <= opponentWaitTimeoutRetry && recentMoveId <= myRecentMoveId)
+                {
+                    try {
+                        System.out.println("Waiting for opponent...");
+                        Thread.sleep(opponentWaitTimeoutSecond/opponentWaitTimeoutRetry * 1000);
+                        counter++;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
 
-            //game = game.FromState(newState, target);
+                    response = ApiHelper.GetMyMoves(gameId, recentCount);
+                    recentMoveId = ParseRecentMoveId(response);
+                }
+
+                if(counter > opponentWaitTimeoutRetry)
+                {
+                    System.out.println("Opponent didn't make any move within " + opponentWaitTimeoutSecond + " seconds. Ending game.");
+                    return;
+                }
+                else
+                {
+                    byte[][] newState = ParseGameBoard(response, boardSize, mine);
+                    game = game.FromState(newState, target);
+                    continue;
+                }
+            }
         }
+    }
 
-//        System.out.println(response.ResponseBody);
+    public static int ParseRecentMoveId(BaseResponse response)
+    {
+        JsonObject jsonObject = gson.fromJson(response.ResponseBody, JsonObject.class);
+        JsonArray moves = jsonObject.get("moves").getAsJsonArray();
+        return moves.get(0).getAsJsonObject().get("moveId").getAsInt();
+    }
+
+    public static int ParseMyMoveId(BaseResponse response)
+    {
+        JsonObject jsonObject = gson.fromJson(response.ResponseBody, JsonObject.class);
+        return jsonObject.get("moveId").getAsInt();
     }
 
     public static int ParseGameId(BaseResponse response)
@@ -84,6 +138,24 @@ public class Main {
     {
         JsonObject jsonObject = gson.fromJson(response.ResponseBody, JsonObject.class);
         return jsonObject.get("code").getAsString().equals("OK");
+    }
+
+    public static String ParseError(BaseResponse response)
+    {
+        JsonObject jsonObject = gson.fromJson(response.ResponseBody, JsonObject.class);
+        try
+        {
+            if(jsonObject.get("code").getAsString().equals("FAIL"))
+            {
+                return jsonObject.get("message").getAsString();
+            }
+        }
+        catch (Exception ex)
+        {
+            return "Unknown Error";
+        }
+
+        return  null;
     }
 
     public static byte[][] ParseGameBoard(BaseResponse response, int boardSize, String myPlayer)
