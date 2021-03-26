@@ -8,11 +8,11 @@ public class Main {
 
     public static void main(String[] args) {
         int teamId1 = 1243; //we "X" now
-        int teamId2 = 1246;//1250;//;
-        int boardSize = 3;
+        int teamId2 = 1246;//1250;//;1244
+        int boardSize = 4;
         String mine = teamId1 == 1243 ? "O" : "X";
         int target = 3;
-        int gameId = 2528;
+        int gameId = 2593;
         int recentCount = boardSize * boardSize;
 
         //1. Create a game local (for having a Game instance)
@@ -48,27 +48,22 @@ public class Main {
 
             //4. Make a best move locally and change player
             game.Move(game.nextPlayer, bestMove);
-//            if(true) continue;
-//            if(true) continue;
+
             //5. Send your move online (retry until move sent)
             response = ApiHelper.MakeMove(gameId, teamId1, bestMove.x, bestMove.y);
             boolean isSuccessful = IsSuccess(response);
-
+            // TODO:: counter for break while if fail, error message output-a
             while(!isSuccessful)
             {
                 response = ApiHelper.MakeMove(gameId, teamId1, bestMove.x, bestMove.y);
                 isSuccessful = IsSuccess(response);
             }
-//            int swap = teamId1;
-//            teamId1 = teamId2;
-//            teamId2 = swap;
-//
-//
-//            mine = teamId1 == 1243 ? "O" : "X";
+
 //            response = ApiHelper.GetMyMoves(gameId, recentCount);
 //            game = game.FromState(ParseGameBoard(response, boardSize, mine), target);
 
-
+            // TODO:: add interval 5-10 sec. for checking next move
+            // TODO:: currMoveID must be > than incoming response of latest ID
             //6. Get the new board state and make a move on behalf of the opponent
             //response = ApiHelper.GetMyMoves(gameId, recentCount);
             //byte[][] newState = ParseGameBoard(response, boardSize);

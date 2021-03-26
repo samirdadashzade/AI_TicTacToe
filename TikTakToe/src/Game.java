@@ -101,7 +101,7 @@ public class Game {
     public byte[][] Result(byte[][] state, byte player, Action action) {
         if(action != null)
         {
-            state[action.y][action.x] = player;
+            state[action.x][action.y] = player;
         }
 
         return state;
@@ -184,6 +184,7 @@ public class Game {
                 startElmnt = board[i][j];
                 // if enough space remainings from current to the
                 // end of board (in row order)
+
                 if(j+targetLength <= boardLength){
                     boolean f = true;
                     for (int k = j+1; k < j + targetLength; k++) {
@@ -207,6 +208,7 @@ public class Game {
 
                 // if enough space remainings from current to the
                 // end of board (in column order)
+
                 if(i + targetLength <= boardLength){
                     boolean f = true;
 
@@ -227,7 +229,7 @@ public class Game {
                     }
                 }
 
-                // check diagonal through right \
+                // check diagonal through right
                 if(i + targetLength-1 < boardLength && j + targetLength - 1 < boardLength){
                     int tmpI = i+1;
                     int tmpJ = j+1;
@@ -249,7 +251,10 @@ public class Game {
                 }
 
                 // check diagonal through left /
-                if(i + targetLength-1 < boardLength && j - (targetLength - 1) >= 0 && j - (targetLength - 1) < boardLength){
+                if(i + targetLength - 1 < boardLength &&
+                   j - (targetLength - 1) >= 0 &&
+                   j - (targetLength - 1) < boardLength
+                ){
                     int tmpI = i+1;
                     int tmpJ = j-1;
                     boolean f = true;
@@ -335,9 +340,12 @@ public class Game {
     public ActionResult Minimax(byte[][] state, int depth, int alpha, int beta, boolean maxPlayer) {
         if(depth == 0 || this.Terminal(state))
         {
-            printBoard(state);
+//            printBoard(state);
             return new ActionResult(this.Utility(state), new Action(-1, -1));
         }
+        //
+
+        //
 
         if(maxPlayer)
         {
