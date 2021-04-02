@@ -82,7 +82,7 @@ public class Game {
         this.targetLength = trgtLength;
         int n = this.GameState.length;
 
-        int depth = 5;//n > 4 ? 7 : 7;
+        int depth = 7;//n > 4 ? 7 : 7;
         ActionResult bestMove = this.Minimax(this.GameState, depth, Integer.MIN_VALUE, Integer.MAX_VALUE,false);
         return bestMove.Action;
     }
@@ -289,12 +289,27 @@ public class Game {
         Action[] actions = new Action[n * n];
         int actionIndex = 0;
 
-        for(int i = 0; i < n; i++) {
-            for(int j = 0; j < n; j++) {
+        for(int i = n/2; i < n; i++) {
+            for(int j = n/2; j < n; j++) {
+                if(state[i][j] == 0)
+                    actions[actionIndex++] = new Action(i, j);
+            }
+            for(int j = 0; j < n/2; j++) {
                 if(state[i][j] == 0)
                     actions[actionIndex++] = new Action(i, j);
             }
         }
+        for(int i = 0; i < n/2; i++) {
+            for(int j = n/2; j < n; j++) {
+                if(state[i][j] == 0)
+                    actions[actionIndex++] = new Action(i, j);
+            }
+            for(int j = 0; j < n/2; j++) {
+                if(state[i][j] == 0)
+                    actions[actionIndex++] = new Action(i, j);
+            }
+        }
+
 
         return actions;
     }
